@@ -24,9 +24,3 @@ First foray into AI scripting. Gave it a somewhat challenging prompt to create a
 Artifact: https://claude.ai/public/artifacts/63068550-7b2a-40d1-ba86-3baf564ea053
 
 Readme: [road_choice_game/README.md](./road_choice_game/README.md)
-
-> "Dude. It’s that time of the year where I come up with a genius idea for us to make millions to. And this one is brilliant."
-
-> "Right. It’s a very basic mobile phone game. Basic graphics and controls. You’re on a road whether it be in a car, on a bike etc. you get to the end of the road and you have a choice to turn left or right. You can’t see where left or right takes you. The aim of the game is to take the turning that’s not a dead end or it’s game over. The longer you keep going the higher the points you get. So it’s a high score type of game where your scores are posted online in the game. That’s pretty much it. It should be a free game with ads or one of payment for no ads. Micro transactions like skins and other cosmetic stuff can be added too."
-
-'nuff said
