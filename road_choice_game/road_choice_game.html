@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Choice Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .road {
+            width: 300px;
+            height: 200px;
+            margin: 20px auto;
+            background: #444;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .road-lines {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: repeating-linear-gradient(
+                to right,
+                white 0px,
+                white 20px,
+                transparent 20px,
+                transparent 40px
+            );
+            transform: translateY(-50%);
+        }
+
+        .fork {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+        }
+
+        .fork::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            height: 60px;
+            background: white;
+            transform: translateX(-50%);
+        }
+
+        .fork::after {
+            content: "?";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #f39c12;
+        }
+
+        .controls {
+            margin: 30px 0;
+        }
+
+        .choice-btn {
+            padding: 15px 30px;
+            margin: 0 10px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .left-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .left-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .right-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .right-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .score {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #f39c12;
+        }
+
+        .game-over {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid #e74c3c;
+        }
+
+        .high-scores {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .restart-btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .restart-btn:hover {
+            background: #229954;
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🛣️ Road Choice Game</h1>
+        
+        <div class="instructions">
+            You're at the end of a road. Choose left or right - but you can't see where they lead!<br>
+            Each choice has a 50% chance of being a dead end. How far can you go?
+        </div>
+
+        <div class="score">Score: <span id="score">0</span></div>
+
+        <div class="road" id="road">
+            <div class="road-lines"></div>
+            <div class="fork"></div>
+        </div>
+
+        <div class="controls" id="controls">
+            <button class="choice-btn left-btn" onclick="makeChoice('left')">← GO LEFT</button>
+            <button class="choice-btn right-btn" onclick="makeChoice('right')">GO RIGHT →</button>
+        </div>
+
+        <div id="gameOverScreen" class="game-over" style="display: none;">
+            <h2>💀 DEAD END!</h2>
+            <p>You survived <span id="finalScore">0</span> turns!</p>
+            <button class="restart-btn" onclick="restartGame()">Try Again</button>
+        </div>
+
+        <div class="high-scores" id="highScores">
+            <h3>🏆 High Scores</h3>
+            <div id="scoresList">No games played yet</div>
+        </div>
+    </div>
+
+    <script>
+        let currentScore = 0;
+        let highScores = [];
+        let gameActive = true;
+
+        function makeChoice(direction) {
+            if (!gameActive) return;
+
+            // 50% chance of success
+            const success = Math.random() < 0.5;
+            
+            if (success) {
+                currentScore++;
+                document.getElementById('score').textContent = currentScore;
+                
+                // Visual feedback for success
+                const road = document.getElementById('road');
+                road.style.background = '#27ae60';
+                setTimeout(() => {
+                    road.style.background = '#444';
+                }, 300);
+                
+            } else {
+                // Game over
+                gameActive = false;
+                document.getElementById('finalScore').textContent = currentScore;
+                document.getElementById('gameOverScreen').style.display = 'block';
+                document.getElementById('controls').style.display = 'none';
+                
+                // Add to high scores
+                highScores.push(currentScore);
+                highScores.sort((a, b) => b - a); // Sort highest to lowest
+                updateHighScores();
+                
+                // Visual feedback for game over
+                const road = document.getElementById('road');
+                road.style.background = '#e74c3c';
+            }
+        }
+
+        function updateHighScores() {
+            const scoresList = document.getElementById('scoresList');
+            if (highScores.length === 0) {
+                scoresList.innerHTML = 'No games played yet';
+                return;
+            }
+
+            let scoresHTML = '';
+            highScores.forEach((score, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
+                scoresHTML += `<div>${medal} ${score} turn${score !== 1 ? 's' : ''}</div>`;
+            });
+            scoresList.innerHTML = scoresHTML;
+        }
+
+        function restartGame() {
+            currentScore = 0;
+            gameActive = true;
+            
+            document.getElementById('score').textContent = '0';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('controls').style.display = 'block';
+            
+            // Reset road color
+            const road = document.getElementById('road');
+            road.style.background = '#444';
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', function(event) {
+            if (!gameActive) return;
+            
+            if (event.key === 'ArrowLeft' || event.key === 'a' || event.key === 'A') {
+                makeChoice('left');
+            } else if (event.key === 'ArrowRight' || event.key === 'd' || event.key === 'D') {
+                makeChoice('right');
+            }
+        });
+    </script>
+</body>
+</html>
