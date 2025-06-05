@@ -9,7 +9,7 @@ Artifact: https://claude.ai/public/artifacts/8d735ca7-2be9-4e23-83a7-e96830e5eea
 
 Readme: [spaceship-earth/README.md](./spaceship-earth/README.md)
 
-First project would be to see if we can duplicate [https://github.com/mjheick/spaceship-earth](my spaceship-earth).
+First project would be to see if we can duplicate [my spaceship-earth](https://github.com/mjheick/spaceship-earth).
 
 # m3u8_downloader.py
 
