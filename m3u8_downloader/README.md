@@ -15,26 +15,23 @@ Usage:
 
 Basic usage
 
-   python m3u8_downloader.py "https://example.com/playlist.m3u8"
+```python m3u8_downloader.py "https://example.com/playlist.m3u8"```
 
 Specify output file
 
-   python m3u8_downloader.py "https://example.com/playlist.m3u8" -o "my_video.mp4"
+```python m3u8_downloader.py "https://example.com/playlist.m3u8" -o "my_video.mp4"```
 
 Use more concurrent downloads
 
-   python m3u8_downloader.py "https://example.com/playlist.m3u8" -w 10
+```python m3u8_downloader.py "https://example.com/playlist.m3u8" -w 10```
 
 Requirements:
 
 You'll need to install the requests library:
 
-   bashpip install requests
+```pip install requests```
 
 For best results, install FFmpeg on your system:
-
-Windows: Download from https://ffmpeg.org/
-
-Mac: brew install ffmpeg
-
-Linux: sudo apt install ffmpeg or sudo yum install ffmpeg
+- Windows: Download from https://ffmpeg.org/
+- Mac: ```brew install ffmpeg```
+- Linux: ```sudo apt install ffmpeg``` or ```sudo yum install ffmpeg```
