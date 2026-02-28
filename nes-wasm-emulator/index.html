@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NES Emulator - PHP-WASM</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>NES Emulator</h1>
+        <div class="emulator-wrapper">
+            <div class="screen-container">
+                <canvas id="screen" width="256" height="240"></canvas>
+            </div>
+        </div>
+        <div class="controls-panel">
+            <div class="controls-info">
+                <div class="control-group">
+                    <span class="control-key">↑↓←→</span>
+                    <span>D-Pad</span>
+                </div>
+                <div class="control-group">
+                    <span class="control-key">A</span>
+                    <span>A Button</span>
+                </div>
+                <div class="control-group">
+                    <span class="control-key">B</span>
+                    <span>B Button</span>
+                </div>
+                <div class="control-group">
+                    <span class="control-key">F1</span>
+                    <span>Select</span>
+                </div>
+                <div class="control-group">
+                    <span class="control-key">F2</span>
+                    <span>Start</span>
+                </div>
+            </div>
+            <div class="rom-loader">
+                <input type="file" id="romFile" accept=".nes">
+                <label for="romFile">Load ROM File</label>
+                <div id="status">Ready</div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/php-wasm/php-web.js"></script>
+    <script src="emulator.js"></script>
+</body>
+</html>

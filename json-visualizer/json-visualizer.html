@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            overflow: auto;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #canvas {
+            display: block;
+            background: white;
+            cursor: grab;
+        }
+        
+        #canvas:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <script>
+        const TREE = {
+            "level1_a": {
+                "level2_a": {
+                    "level3_a": {
+                        "level4_a": {
+                            "level5_a": {
+                                "level6_a": {
+                                    "level7_a": {
+                                        "level8_a": {
+                                            "level9_a": "Deep Value A",
+                                            "level9_b": 999
+                                        },
+                                        "level8_b": "Value 8B"
+                                    },
+                                    "level7_b": "Value 7B"
+                                },
+                                "level6_b": "Value 6B"
+                            },
+                            "level5_b": "Value 5B"
+                        },
+                        "level4_b": "Value 4B"
+                    },
+                    "level3_b": {
+                        "level4_c": {
+                            "level5_c": {
+                                "level6_c": {
+                                    "level7_c": {
+                                        "level8_c": {
+                                            "level9_c": "Deep Value C"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "level2_b": "Value 2B"
+            },
+            "level1_b": {
+                "level2_c": {
+                    "level3_c": {
+                        "level4_d": {
+                            "level5_d": {
+                                "level6_d": {
+                                    "level7_d": {
+                                        "level8_d": {
+                                            "level9_d": "Deep Value D",
+                                            "level9_e": true,
+                                            "level9_f": 42
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "level1_c": ["item1", "item2", "item3"],
+            "level1_d": {
+                "level2_d": {
+                    "level3_d": ["a", "b", "c"],
+                    "level3_e": {
+                        "level4_e": {
+                            "level5_e": {
+                                "level6_e": {
+                                    "level7_e": {
+                                        "level8_e": {
+                                            "level9_g": "Final Deep Value"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const VERTICAL_GAP = 80;
+        const HORIZONTAL_GAP = 40;
+        const BOX_PADDING = 12;
+        const BOX_MIN_WIDTH = 120;
+        
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        
+        function resizeCanvas() {
+            // Don't resize to window size, calculate actual content size
+            ctx.font = 'bold 14px Arial';
+        }
+        
+        function measureBox(key, value) {
+            const keyWidth = ctx.measureText(key).width;
+            let valueWidth = 0;
+            
+            if (typeof value !== 'object' || value === null) {
+                valueWidth = ctx.measureText(JSON.stringify(value)).width;
+            }
+            
+            const width = Math.max(BOX_MIN_WIDTH, keyWidth + BOX_PADDING * 2, valueWidth + BOX_PADDING * 2);
+            const height = (typeof value !== 'object' || value === null) ? 60 : 45;
+            
+            return { width, height };
+        }
+        
+        function calculateSubtreeWidth(value) {
+            if (Array.isArray(value)) {
+                let totalWidth = 0;
+                value.forEach((item) => {
+                    const box = measureBox('temp', item);
+                    totalWidth += box.width;
+                });
+                return totalWidth + (value.length - 1) * HORIZONTAL_GAP;
+            } else if (typeof value === 'object' && value !== null) {
+                let totalWidth = 0;
+                Object.keys(value).forEach(childKey => {
+                    const childValue = value[childKey];
+                    const box = measureBox(childKey, childValue);
+                    const childWidth = Math.max(box.width, calculateSubtreeWidth(childValue));
+                    totalWidth += childWidth;
+                });
+                return totalWidth + (Object.keys(value).length - 1) * HORIZONTAL_GAP;
+            }
+            return 0;
+        }
+        
+        function drawBox(key, value, x, y) {
+            const size = measureBox(key, value);
+            
+            // Draw box
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(x, y, size.width, size.height, 8);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Draw key
+            ctx.fillStyle = '#0066cc';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(key, x + size.width / 2, y + BOX_PADDING);
+            
+            // Draw separator line
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x + BOX_PADDING, y + 30);
+            ctx.lineTo(x + size.width - BOX_PADDING, y + 30);
+            ctx.stroke();
+            
+            // Draw value if primitive
+            if (typeof value !== 'object' || value === null) {
+                ctx.fillStyle = '#333';
+                ctx.font = '14px Arial';
+                ctx.textBaseline = 'top';
+                ctx.fillText(JSON.stringify(value), x + size.width / 2, y + 38);
+            }
+            
+            return { x, y, width: size.width, height: size.height };
+        }
+        
+        function drawLine(x1, y1, x2, y2) {
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+        
+        function visualize() {
+            const levels = [];
+            const lines = [];
+            
+            // Build tree structure level by level
+            const rootKeys = Object.keys(TREE);
+            const rootLevel = [];
+            
+            rootKeys.forEach(key => {
+                const value = TREE[key];
+                const width = calculateSubtreeWidth(value);
+                rootLevel.push({ key, value, width, parent: null });
+            });
+            
+            levels.push(rootLevel);
+            
+            // Process each level to create children
+            function processLevel(parentLevel, depth) {
+                const childLevel = [];
+                
+                parentLevel.forEach(parent => {
+                    parent.children = [];
+                    
+                    if (Array.isArray(parent.value)) {
+                        parent.value.forEach((item, index) => {
+                            const childKey = `${parent.key}[${index}]`;
+                            const width = calculateSubtreeWidth(item);
+                            const child = { 
+                                key: childKey, 
+                                value: item, 
+                                width,
+                                parentRef: parent
+                            };
+                            childLevel.push(child);
+                            parent.children.push(child);
+                        });
+                    } else if (typeof parent.value === 'object' && parent.value !== null) {
+                        Object.keys(parent.value).forEach(childKey => {
+                            const childValue = parent.value[childKey];
+                            const width = calculateSubtreeWidth(childValue);
+                            const child = { 
+                                key: childKey, 
+                                value: childValue, 
+                                width,
+                                parentRef: parent
+                            };
+                            childLevel.push(child);
+                            parent.children.push(child);
+                        });
+                    }
+                });
+                
+                if (childLevel.length > 0) {
+                    levels.push(childLevel);
+                    processLevel(childLevel, depth + 1);
+                }
+            }
+            
+            processLevel(rootLevel, 1);
+            
+            // Calculate subtree width for each node (including all descendants)
+            function calculateNodeSubtreeWidth(node) {
+                if (!node.children || node.children.length === 0) {
+                    const box = measureBox(node.key, node.value);
+                    node.subtreeWidth = box.width;
+                    return box.width;
+                }
+                
+                let childrenWidth = 0;
+                node.children.forEach(child => {
+                    childrenWidth += calculateNodeSubtreeWidth(child);
+                });
+                childrenWidth += (node.children.length - 1) * HORIZONTAL_GAP;
+                
+                const box = measureBox(node.key, node.value);
+                node.subtreeWidth = Math.max(box.width, childrenWidth);
+                return node.subtreeWidth;
+            }
+            
+            // Calculate subtree widths for all root nodes
+            rootLevel.forEach(node => calculateNodeSubtreeWidth(node));
+            
+            // Calculate canvas size based on content
+            let maxWidth = rootLevel.reduce((sum, node) => sum + node.subtreeWidth, 0);
+            maxWidth += (rootLevel.length - 1) * HORIZONTAL_GAP + 100;
+            
+            let totalHeight = 100;
+            levels.forEach(() => {
+                totalHeight += VERTICAL_GAP + 60;
+            });
+            
+            canvas.width = maxWidth;
+            canvas.height = totalHeight;
+            ctx.font = 'bold 14px Arial';
+            
+            // Position nodes recursively
+            function positionNode(node, centerX, y) {
+                const box = measureBox(node.key, node.value);
+                const boxX = centerX - box.width / 2;
+                
+                node.box = drawBox(node.key, node.value, boxX, y);
+                
+                // Position children
+                if (node.children && node.children.length > 0) {
+                    const childY = y + VERTICAL_GAP + 60;
+                    
+                    // Calculate total width of children
+                    let childrenWidth = node.children.reduce((sum, child) => sum + child.subtreeWidth, 0);
+                    childrenWidth += (node.children.length - 1) * HORIZONTAL_GAP;
+                    
+                    // Start position for children (centered under parent)
+                    let childX = centerX - childrenWidth / 2;
+                    
+                    node.children.forEach(child => {
+                        const childCenterX = childX + child.subtreeWidth / 2;
+                        positionNode(child, childCenterX, childY);
+                        childX += child.subtreeWidth + HORIZONTAL_GAP;
+                    });
+                }
+            }
+            
+            // Position all root nodes
+            let currentY = 50;
+            let totalRootWidth = rootLevel.reduce((sum, node) => sum + node.subtreeWidth, 0);
+            totalRootWidth += (rootLevel.length - 1) * HORIZONTAL_GAP;
+            let currentX = (canvas.width - totalRootWidth) / 2;
+            
+            rootLevel.forEach(node => {
+                const centerX = currentX + node.subtreeWidth / 2;
+                positionNode(node, centerX, currentY);
+                currentX += node.subtreeWidth + HORIZONTAL_GAP;
+            });
+            
+            // Draw lines
+            function drawNodeLines(node) {
+                if (node.children && node.children.length > 0) {
+                    node.children.forEach(child => {
+                        drawLine(
+                            node.box.x + node.box.width / 2,
+                            node.box.y + node.box.height,
+                            child.box.x + child.box.width / 2,
+                            child.box.y
+                        );
+                        drawNodeLines(child);
+                    });
+                }
+            }
+            
+            rootLevel.forEach(node => drawNodeLines(node));
+        }
+        
+        visualize();
+        
+        // Mouse drag to pan
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - offsetX;
+            startY = e.clientY - offsetY;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                offsetX = e.clientX - startX;
+                offsetY = e.clientY - startY;
+                canvas.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            }
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+        
+        window.addEventListener('resize', () => {
+            visualize();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warp Speed - Following the Enterprise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            background: #000;
+            font-family: 'Courier New', monospace;
+        }
+        
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ff00;
+            font-size: 18px;
+            text-shadow: 0 0 10px #00ff00;
+            z-index: 10;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            font-size: 14px;
+            text-align: center;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        #controls a {
+            color: #00ffff;
+            text-decoration: none;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        #controls a:hover {
+            color: #fff;
+            text-shadow: 0 0 15px #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="spaceCanvas"></canvas>
+    <div id="controls">
+        Press SPACE to toggle warp speed | Arrow keys to maneuver | <a href="https://youtu.be/3u3WwFMgy5A" target="_blank" rel="noopener noreferrer">Watch on YouTube</a>
+    </div>
+    <script src="space.js"></script>
+</body>
+</html>
