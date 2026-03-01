@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Spirograph</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        body {
+            background: #000;
+        }
+        canvas {
+            display: block;
+        }
+        #controls {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #333;
+            color: #fff;
+            border: 2px solid #666;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #555;
+        }
+        #speedControls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        #speedDisplay {
+            color: #fff;
+            font-size: 18px;
+            font-family: monospace;
+            min-width: 60px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button id="resetBtn">New Spirograph</button>
+        <div id="speedControls">
+            <button id="slowerBtn">Slower</button>
+            <span id="speedDisplay">0.02</span>
+            <button id="fasterBtn">Faster</button>
+        </div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script src="spirograph.js"></script>
+</body>
+</html>
