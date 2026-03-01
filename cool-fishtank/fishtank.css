@@ -1,0 +1,105 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #1a1a2e;
+    gap: 20px;
+}
+
+h1 {
+    color: #4682b4;
+    font-size: 48px;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#feedBtn {
+    padding: 12px 30px;
+    font-size: 18px;
+    background: #8b4513;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#feedBtn:hover {
+    background: #a0522d;
+}
+
+#feedBtn:active {
+    transform: scale(0.95);
+}
+
+#tank {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    background: linear-gradient(to bottom, #87ceeb 0%, #4682b4 100%);
+    border: 8px solid #8b4513;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: crosshair;
+}
+
+.goldfish {
+    position: absolute;
+    width: 40px;
+    height: 25px;
+    font-size: 30px;
+    transition: transform 0.3s;
+}
+
+.flake {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #8b4513;
+    border-radius: 50%;
+}
+
+.dead {
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
+.fade-out {
+    animation: fadeOut 2s forwards;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+    }
+}
+
+.instructions {
+    color: #87ceeb;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    text-align: center;
+    margin: 0;
+}
+
+#hungerTooltip {
+    position: fixed;
+    display: none;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 1000;
+}
