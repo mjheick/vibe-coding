@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunar Lander</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            color: white;
+        }
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #banner {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+        }
+        #gameArea {
+            display: flex;
+            gap: 20px;
+        }
+        #canvas {
+            border: 2px solid #444;
+            background: black;
+        }
+        #scoreboard {
+            background: #222;
+            padding: 20px;
+            border: 2px solid #444;
+            min-width: 150px;
+        }
+        #scoreboard div {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        #scoreboard .label {
+            color: #888;
+            font-size: 12px;
+        }
+        #scoreboard .value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        #instructions {
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="banner">LUNAR LANDER</div>
+        <div id="gameArea">
+            <canvas id="canvas" width="600" height="600"></canvas>
+            <div id="scoreboard">
+                <div>
+                    <div class="label">HEIGHT (m)</div>
+                    <div class="value" id="height">0</div>
+                </div>
+                <div>
+                    <div class="label">DESCENT RATE</div>
+                    <div class="value" id="descent">0</div>
+                </div>
+                <div>
+                    <div class="label">FUEL</div>
+                    <div class="value" id="fuel">0</div>
+                </div>
+            </div>
+        </div>
+        <div id="instructions">
+            Press G to start game | SPACEBAR to fire engines
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const MOON_GRAVITY = 1.625;
+        const PIXELS_PER_METER = 2;
+        const ENGINE_THRUST = 2.0;
+        const FUEL_CONSUMPTION = 1;
+        const INITIAL_FUEL = 50;
+        const SAFE_LANDING_SPEED = 1.0;
+        
+        let gameState = {
+            active: false,
+            landerY: 0,
+            velocity: 0,
+            fuel: INITIAL_FUEL,
+            engineOn: false,
+            gameOver: false,
+            crashed: false,
+            stars: []
+        };
+        
+        const groundHeight = canvas.height * 0.01;
+        const groundY = canvas.height - groundHeight;
+        const landerStartY = 50;
+        const maxHeight = (groundY - landerStartY) / PIXELS_PER_METER;
+        
+        function generateStars() {
+            const stars = [];
+            const starCount = Math.floor((canvas.width * canvas.height) * 0.0005);
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (groundY - 50)
+                });
+            }
+            return stars;
+        }
+        
+        function initGame() {
+            gameState = {
+                active: true,
+                landerY: landerStartY,
+                velocity: 0,
+                fuel: INITIAL_FUEL,
+                engineOn: false,
+                gameOver: false,
+                crashed: false,
+                stars: generateStars()
+            };
+        }
+        
+        function drawLander(x, y, engineOn) {
+            ctx.save();
+            ctx.translate(x, y);
+            
+            // Body (white square)
+            ctx.fillStyle = 'white';
+            ctx.fillRect(-10, -10, 20, 20);
+            
+            // Top (silver triangle)
+            ctx.fillStyle = 'silver';
+            ctx.beginPath();
+            ctx.moveTo(-10, -10);
+            ctx.lineTo(10, -10);
+            ctx.lineTo(0, -20);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Legs
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-8, 10);
+            ctx.lineTo(-15, 20);
+            ctx.moveTo(8, 10);
+            ctx.lineTo(15, 20);
+            ctx.stroke();
+            
+            // Engine fire
+            if (engineOn) {
+                ctx.fillStyle = 'orange';
+                ctx.beginPath();
+                ctx.moveTo(-5, 10);
+                ctx.lineTo(5, 10);
+                ctx.lineTo(0, 25);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+        
+        function draw() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Stars
+            ctx.fillStyle = 'white';
+            gameState.stars.forEach(star => {
+                ctx.fillRect(star.x, star.y, 2, 2);
+            });
+            
+            // Ground
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, groundY, canvas.width, groundHeight);
+            
+            if (gameState.active || gameState.gameOver) {
+                drawLander(canvas.width / 2, gameState.landerY, gameState.engineOn && !gameState.gameOver);
+            }
+            
+            // Game over messages
+            if (gameState.gameOver) {
+                ctx.font = 'bold 48px Courier New';
+                ctx.textAlign = 'center';
+                
+                if (gameState.crashed) {
+                    ctx.fillStyle = 'red';
+                    ctx.fillText('CRASH', canvas.width / 2, canvas.height / 2);
+                } else {
+                    ctx.fillStyle = 'lime';
+                    ctx.fillText('SAFE', canvas.width / 2, canvas.height / 2);
+                }
+                
+                ctx.font = '20px Courier New';
+                ctx.fillStyle = 'white';
+                ctx.fillText('Press G to restart', canvas.width / 2, canvas.height / 2 + 40);
+            }
+        }
+        
+        function updateScoreboard() {
+            const height = Math.max(0, Math.round((groundY - gameState.landerY - 20) / PIXELS_PER_METER));
+            const descent = Math.round(Math.abs(gameState.velocity) * 10) / 10;
+            
+            document.getElementById('height').textContent = height;
+            document.getElementById('descent').textContent = descent.toFixed(1);
+            document.getElementById('fuel').textContent = Math.round(gameState.fuel);
+        }
+        
+        function update(deltaTime) {
+            if (!gameState.active || gameState.gameOver) return;
+            
+            const dt = deltaTime / 1000;
+            
+            // Apply gravity
+            gameState.velocity += MOON_GRAVITY * dt;
+            
+            // Apply engine thrust
+            if (gameState.engineOn && gameState.fuel > 0) {
+                gameState.velocity -= ENGINE_THRUST * dt;
+                gameState.fuel -= FUEL_CONSUMPTION * dt;
+                if (gameState.fuel < 0) gameState.fuel = 0;
+            }
+            
+            // Update position
+            gameState.landerY += gameState.velocity * PIXELS_PER_METER * dt;
+            
+            // Check landing
+            if (gameState.landerY + 20 >= groundY) {
+                gameState.landerY = groundY - 20;
+                gameState.gameOver = true;
+                gameState.active = false;
+                
+                if (gameState.velocity > SAFE_LANDING_SPEED) {
+                    gameState.crashed = true;
+                } else {
+                    gameState.crashed = false;
+                }
+            }
+        }
+        
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+            
+            if (deltaTime < 100) {
+                update(deltaTime);
+            }
+            
+            draw();
+            updateScoreboard();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'g') {
+                initGame();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                if (gameState.active && !gameState.gameOver) {
+                    gameState.engineOn = true;
+                }
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (e.key === ' ') {
+                gameState.engineOn = false;
+            }
+        });
+        
+        updateScoreboard();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
