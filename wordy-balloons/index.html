@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wordy Balloons</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const COLORS = [
+  '#e74c3c', '#3498db', '#f1c40f',   // primary
+  '#2ecc71', '#e67e22', '#9b59b6',   // secondary
+  '#ffffff', '#222222', '#ff69b4', '#8B4513' // white, black, pink, brown
+];
+
+const BALLOON_RADIUS = 40;
+const FLOAT_SPEED = 1.2;
+const CHAIN_TIMEOUT = 4000;
+const SPAWN_MARGIN = 0.1; // 10% margin each side = 80% center
+
+let balloons = [];
+let shrapnels = [];
+let lastLetterBalloon = null;
+let lastLetterTime = 0;
+let lastAnyBalloon = null; // tracks the most recent balloon of any kind
+
+const RANDOM_SPAWN_MIN = 1500;
+const RANDOM_SPAWN_MAX = 4000;
+
+function randomColor() {
+  return COLORS[Math.floor(Math.random() * COLORS.length)];
+}
+
+function randomSpawnX() {
+  const left = W * SPAWN_MARGIN;
+  const right = W * (1 - SPAWN_MARGIN);
+  return left + Math.random() * (right - left);
+}
+
+function chainActive() {
+  return lastLetterBalloon && (Date.now() - lastLetterTime) < CHAIN_TIMEOUT;
+}
+
+function spawnBalloon(letter) {
+  const now = Date.now();
+  const color = randomColor();
+  let x;
+
+  if (lastLetterBalloon && (now - lastLetterTime) < CHAIN_TIMEOUT) {
+    // Chain is active — place to the right of last letter balloon
+    x = lastLetterBalloon.x + BALLOON_RADIUS * 2.5;
+    const maxX = W * (1 - SPAWN_MARGIN);
+    if (x > maxX) x = W * SPAWN_MARGIN + BALLOON_RADIUS;
+  } else if (lastAnyBalloon) {
+    // No active chain but there's a recent balloon — spawn next to it
+    x = lastAnyBalloon.x + BALLOON_RADIUS * 2.5;
+    const maxX = W * (1 - SPAWN_MARGIN);
+    if (x > maxX) x = W * SPAWN_MARGIN + BALLOON_RADIUS;
+  } else {
+    x = randomSpawnX();
+  }
+
+  const balloon = {
+    x,
+    y: H + BALLOON_RADIUS,
+    radius: BALLOON_RADIUS,
+    color,
+    letter: letter,
+    alive: true
+  };
+
+  balloons.push(balloon);
+  lastLetterBalloon = balloon;
+  lastLetterTime = now;
+  lastAnyBalloon = balloon;
+}
+
+function spawnRandomBalloon() {
+  const color = randomColor();
+  const x = randomSpawnX();
+
+  const balloon = {
+    x,
+    y: H + BALLOON_RADIUS,
+    radius: BALLOON_RADIUS,
+    color,
+    letter: '',
+    alive: true
+  };
+
+  balloons.push(balloon);
+
+  // Only update lastAnyBalloon if no letter chain is active
+  if (!chainActive()) {
+    lastAnyBalloon = balloon;
+  }
+}
+
+function scheduleRandomBalloon() {
+  const delay = RANDOM_SPAWN_MIN + Math.random() * (RANDOM_SPAWN_MAX - RANDOM_SPAWN_MIN);
+  setTimeout(() => {
+    spawnRandomBalloon();
+    scheduleRandomBalloon();
+  }, delay);
+}
+scheduleRandomBalloon();
+
+function popBalloon(b) {
+  b.alive = false;
+  for (let i = 0; i < 18; i++) {
+    const angle = Math.random() * Math.PI; // only downward (0 to PI)
+    const speed = 1.5 + Math.random() * 3;
+    shrapnels.push({
+      x: b.x + (Math.random() - 0.5) * b.radius,
+      y: Math.max(b.y, 5), // ensure visible
+      vx: Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1),
+      vy: Math.abs(Math.sin(angle) * speed) + 1, // always downward
+      color: b.color,
+      size: 3 + Math.random() * 5
+    });
+  }
+}
+
+function update() {
+  // Update balloons
+  for (const b of balloons) {
+    if (!b.alive) continue;
+    b.y -= FLOAT_SPEED;
+    if (b.y - b.radius <= 0) {
+      popBalloon(b);
+    }
+  }
+  balloons = balloons.filter(b => b.alive);
+
+  // Update shrapnel
+  for (const s of shrapnels) {
+    s.x += s.vx;
+    s.vy += 0.08; // gravity
+    s.y += s.vy;
+  }
+  shrapnels = shrapnels.filter(s => s.y < H + 20);
+}
+
+function drawBalloon(b) {
+  const r = b.radius;
+
+  // Balloon body
+  ctx.beginPath();
+  ctx.ellipse(b.x, b.y, r * 0.85, r, 0, 0, Math.PI * 2);
+  ctx.fillStyle = b.color;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Shine highlight
+  ctx.beginPath();
+  ctx.ellipse(b.x - r * 0.25, b.y - r * 0.3, r * 0.18, r * 0.28, -0.4, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.fill();
+
+  // Knot at bottom
+  ctx.beginPath();
+  ctx.moveTo(b.x - 4, b.y + r);
+  ctx.lineTo(b.x, b.y + r + 8);
+  ctx.lineTo(b.x + 4, b.y + r);
+  ctx.fillStyle = b.color;
+  ctx.fill();
+
+  // String
+  ctx.beginPath();
+  ctx.moveTo(b.x, b.y + r + 8);
+  ctx.quadraticCurveTo(b.x + 6, b.y + r + 30, b.x - 4, b.y + r + 50);
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Letter
+  if (b.letter) {
+    ctx.font = `bold ${r * 0.9}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Contrast: dark text on light balloons, light text on dark
+    const dark = ['#222222', '#8B4513'];
+    ctx.fillStyle = dark.includes(b.color) ? '#ffffff' : '#000000';
+    ctx.fillText(b.letter, b.x, b.y);
+  }
+}
+
+function drawShrapnel(s) {
+  ctx.fillStyle = s.color;
+  ctx.fillRect(s.x - s.size / 2, s.y - s.size / 2, s.size, s.size);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  for (const s of shrapnels) drawShrapnel(s);
+  for (const b of balloons) if (b.alive) drawBalloon(b);
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+
+window.addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+
+  if (e.key === ' ') {
+    e.preventDefault();
+    spawnBalloon('');
+  } else if (e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {
+    spawnBalloon(e.key.toUpperCase());
+  }
+});
+</script>
+</body>
+</html>
