@@ -1,6 +1,18 @@
 ====================================================================================================
 = A list of all prompts for Kiro/Claude to make the necessary projects. Recent to oldest.
 ====================================================================================================
+wordy-balloons:
+- We're gonna make a fun little interactive game involving balloons
+- This will be run in a browser window
+- I'd like a balloon to spawn at the bottom of the screen. It can spawn at any random position within 80% of the center of the screen. The color of the balloon has to be either a primary color, a secondary color, white, black, pink, or brown.
+- It will float up slowly to the top.
+- When it reaches the top it will "pop", and little shrapnel of the balloons color will fall down
+- When I press a key on the keyboard a balloon will be created with the Letter that I pressed, in uppercase, on the balloon
+- If I press a key within 4 seconds the next balloon created will spawn to the right of the previous balloon that was created with a letter
+- If I press a spacebar there will be a blank balloon created as if a balloon was created with a letter.
+- I would like balloons to randomly spawn as well as manually-entered balloons. The random balloons do not change the position of the character balloons if an active timer exists, but if no timer exists between balloons and a key were to be pressed it would spawn next to the previous balloon.
+- I need the shrapnel logic to not fade out when hitting the top. It needs to make the complete trip down to the bottom of the window
+====================================================================================================
 keyboard-tree-maker
 - I'd like a tree that has branches dictated by the keys entered from the keyboard
 - This will be running in a web browser
