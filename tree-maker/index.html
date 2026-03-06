@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keyboard Tree Maker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { display: flex; flex-direction: column; align-items: center; background: #1a1a2e; min-height: 100vh; font-family: sans-serif; }
+    label { color: #eee; margin-top: 20px; font-size: 14px; }
+    input {
+      margin: 8px 0 12px;
+      padding: 10px 16px;
+      width: 400px;
+      font-size: 18px;
+      border: 2px solid #555;
+      border-radius: 6px;
+      background: #16213e;
+      color: #eee;
+      outline: none;
+    }
+    input:focus { border-color: #0f3460; }
+    input:disabled { opacity: 0.5; cursor: not-allowed; }
+    canvas { border-radius: 8px; background: linear-gradient(180deg, #87CEEB 0%, #d4eaf7 90%, #6b8f3c 90%, #4a7a2a 100%); }
+    #timings { margin-top: 12px; width: 800px; color: #ccc; font-size: 13px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <label for="treeInput">Type characters to grow your tree:</label>
+  <input type="text" id="treeInput" placeholder="Start typing..." maxlength="10" autofocus>
+  <canvas id="treeCanvas" width="800" height="600"></canvas>
+  <div id="timings"></div>
+  <script>
+const canvas = document.getElementById('treeCanvas');
+const ctx = canvas.getContext('2d');
+const input = document.getElementById('treeInput');
+const timingsDiv = document.getElementById('timings');
+
+const TRUNK_COLORS = ['#111111', '#6B3A2A', '#B22222', '#2E7D32'];
+const LEAF_COLORS = ['#228B22', '#32CD32', '#6B8E23', '#3CB371', '#90EE90'];
+const MIN_BRANCH_LEN = 8;
+
+function seededRandom(seed) {
+  let s = seed;
+  return function () {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s & 0x7fffffff) / 0x7fffffff;
+  };
+}
+
+function drawTree(text) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Redraw background
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, '#87CEEB');
+  grad.addColorStop(0.9, '#d4eaf7');
+  grad.addColorStop(0.9, '#6b8f3c');
+  grad.addColorStop(1, '#4a7a2a');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (!text || text.length === 0) { timingsDiv.innerHTML = ''; return; }
+
+  const rand = seededRandom(42);
+  const leaves = [];
+  const timings = [];
+
+  // --- Parse first character: trunk properties ---
+  const c1 = text.charCodeAt(0);
+  const widthBits = (c1 & 0b00000111);       // bits 0-2
+  const heightBits = (c1 & 0b00111000) >> 3;  // bits 3-5
+  const colorBits = (c1 & 0b11000000) >> 6;   // bits 6-7
+
+  const trunkWidth = 6 + widthBits * 3;        // 6 to 27
+  const maxTrunkHeight = canvas.height * 0.75;
+  const trunkHeight = (80 + heightBits * 25) * maxTrunkHeight / 255; // scaled to max 75% of canvas
+  const trunkColor = TRUNK_COLORS[colorBits];
+
+  // Draw trunk
+  const trunkX = canvas.width / 2;
+  const trunkBaseY = canvas.height * 0.9; // ground line at 90%
+  const trunkTopY = trunkBaseY - trunkHeight;
+
+  const t0 = performance.now();
+  ctx.strokeStyle = trunkColor;
+  ctx.lineCap = 'round';
+  ctx.lineWidth = trunkWidth;
+  ctx.beginPath();
+  ctx.moveTo(trunkX, trunkBaseY);
+  ctx.lineTo(trunkX, trunkTopY);
+  ctx.stroke();
+  timings.push({ char: text[0], index: 0, ms: performance.now() - t0, type: 'trunk' });
+
+  if (text.length < 2) { drawLeaves(leaves, rand); showTimings(timings, text); return; }
+
+  // --- Parse second character: branches from trunk ---
+  const c2 = text.charCodeAt(1);
+  const numBranches = (c2 & 0b01111000) >> 3; // bits 3-6, 0-15
+
+  // Recursively collect branch drawing info
+  // Each "level" of characters (index 1, 2, 3...) defines branching from the previous level
+  // We build a tree structure depth-first
+
+  const branchTimers = {};
+
+  function drawBranches(startX, startY, angle, length, width, charIndex, depth) {
+    if (charIndex >= text.length) return;
+    if (length < MIN_BRANCH_LEN || width < 1) return;
+
+    if (!branchTimers[charIndex]) branchTimers[charIndex] = { total: 0 };
+    const entryTime = performance.now();
+
+    const cc = text.charCodeAt(charIndex);
+    const count = (cc & 0b01111000) >> 3; // bits 3-6
+    if (count === 0) return;
+
+    const spread = Math.PI * 0.8; // total angular spread
+    const startAngle = angle - spread / 2;
+    const step = count > 1 ? spread / (count - 1) : 0;
+
+    for (let i = 0; i < count; i++) {
+      const branchAngle = count === 1 ? angle : startAngle + step * i;
+      // Add slight randomness to angle and length
+      const jitterAngle = branchAngle + (rand() - 0.5) * 0.3;
+      const branchLen = length * (0.55 + rand() * 0.25);
+      const endX = startX + Math.cos(jitterAngle) * branchLen;
+      const endY = startY + Math.sin(jitterAngle) * branchLen;
+      const branchWidth = Math.max(1, width * 0.6);
+
+      ctx.strokeStyle = trunkColor;
+      ctx.lineWidth = branchWidth;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      // Add leaves on thinner branches
+      if (branchWidth < 5) {
+        const leafCount = 2 + Math.floor(rand() * 4);
+        for (let l = 0; l < leafCount; l++) {
+          const t = rand();
+          const lx = startX + (endX - startX) * t + (rand() - 0.5) * 12;
+          const ly = startY + (endY - startY) * t + (rand() - 0.5) * 12;
+          leaves.push({ x: lx, y: ly });
+        }
+      }
+
+      // Add leaves at branch tips
+      if (charIndex + 1 >= text.length || branchLen < MIN_BRANCH_LEN) {
+        const tipLeaves = 3 + Math.floor(rand() * 5);
+        for (let l = 0; l < tipLeaves; l++) {
+          leaves.push({
+            x: endX + (rand() - 0.5) * 16,
+            y: endY + (rand() - 0.5) * 16
+          });
+        }
+      }
+
+      // Recurse for next character
+      drawBranches(endX, endY, jitterAngle, branchLen * 0.75, branchWidth, charIndex + 1, depth + 1);
+    }
+
+    branchTimers[charIndex].total += performance.now() - entryTime;
+  }
+
+  drawBranches(trunkX, trunkTopY, -Math.PI / 2, trunkHeight * 0.55, trunkWidth * 0.6, 1, 0);
+
+  for (let ci = 1; ci < text.length; ci++) {
+    if (branchTimers[ci]) {
+      timings.push({ char: text[ci], index: ci, ms: branchTimers[ci].total, type: 'branches+leaves' });
+    }
+  }
+
+  const tLeaves = performance.now();
+  drawLeaves(leaves, rand);
+  timings.push({ char: '—', index: -1, ms: performance.now() - tLeaves, type: 'leaf rendering' });
+
+  showTimings(timings, text);
+}
+
+function formatDuration(ms) {
+  if (ms < 1000) return ms.toFixed(3) + ' ms';
+  const totalSec = ms / 1000;
+  if (totalSec < 60) return totalSec.toFixed(3) + ' s';
+  const min = Math.floor(totalSec / 60);
+  const sec = (totalSec % 60).toFixed(3);
+  return min + ' min ' + sec + ' s';
+}
+
+function showTimings(timings, text) {
+  const lines = [];
+  for (let i = 0; i < text.length; i++) {
+    const t = timings.find(e => e.index === i);
+    if (t) {
+      lines.push(`<div>[${i}] '${t.char}' — ${t.type}: ${formatDuration(t.ms)}</div>`);
+    } else {
+      lines.push(`<div>[${i}] '${text[i]}' — no branches (too short to reach)</div>`);
+    }
+  }
+  const leafEntry = timings.find(e => e.index === -1);
+  if (leafEntry) {
+    lines.push(`<div>[•] — ${leafEntry.type}: ${formatDuration(leafEntry.ms)}</div>`);
+  }
+  timingsDiv.innerHTML = lines.join('');
+}
+
+function drawLeaves(leaves, rand) {
+  for (const leaf of leaves) {
+    ctx.fillStyle = LEAF_COLORS[Math.floor(rand() * LEAF_COLORS.length)];
+    ctx.globalAlpha = 0.7 + rand() * 0.3;
+    ctx.beginPath();
+    const size = 2 + rand() * 3;
+    ctx.ellipse(leaf.x, leaf.y, size, size * 1.4, rand() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+input.addEventListener('input', () => {
+  input.disabled = true;
+  requestAnimationFrame(() => {
+    drawTree(input.value);
+    input.disabled = false;
+    input.focus();
+  });
+});
+
+// Initial draw (empty)
+drawTree('');
+  </script>
+</body>
+</html>
