@@ -1,0 +1,91 @@
+====================================================================================================
+= A list of all prompts for Kiro/Claude to make the necessary projects. Recent to oldest.
+====================================================================================================
+keyboard-tree-maker
+- I'd like a tree that has branches dictated by the keys entered from the keyboard
+- This will be running in a web browser
+- There will be a text box at the top that will take input from the user
+- under the textbox will be a canvas where the tree will be drawn
+- The first character entered will determine the trunk width, height, and color, where the ASCII value of the character, converted to a 8-bit binary mapping would result in bits 0-2 being the width, bits 3-5 being the height, and bits 7-8 being the color (either 0=black, 1=brown, 2=red, 3=green)
+- The second character entered will determine the amount of branches spawning from the trunk, where the ASCII value of the character, converted to an 8-bit binary mapping would result in bits 0-3 being the number of branches present on the trunk
+- The third and subsequent characters would result in the amount of branches spawning from the previous branches, created in the same way as the first branches that spawned from the trunk.
+- Any change to the text field would yield a complete redraw of the tree
+- tiny leaves would be placed on the branches at random positions
+- The ground/sky ratio should be 10% ground, 90% sky. The most the trunk can grow is 75% the height of the container.
+- With branch calculations lets change it from using the first 4 bits to the middle 4 bits when calculating branch counts
+- I think i'll need timing for every branch iterations created. Underneath the camvas lets create an area to show me how long it took each letter to generate it's branches and leaves.
+- To prevent input abuse I need the textbox to be disabled when generating the tree. Also, when showing the timings I need it to adjust to properly display longer times, such as seconds and minutes when the need arises.
+- The timing is showing minutes when seconds is what the timing is actually. I think the calculations are incorrect somehow. Please review the math on that
+- The report at the bottom is not showing more than 6 entries? I have longer values in the textbox, so lets limit the textbox to 10 characters and map that limit to the timings display
+====================================================================================================
+no-old-youtube:
+- I need a tampermonkey script that runs on the domain youtube.com and is hosted at https://drive.corp.amazon.com/documents/mjheick@/TamperMonkey/no-old-youtube
+- The scripts main purpose is to hide youtube videos that were created over 1 year ago
+- It will show how many videos have been hidden and provide direct links to those hidden videos in the browser console
+====================================================================================================
+lunar-lander:
+- We're going to create a spaceship lander game in a browser window
+- The lander will be shown as a white square with a silver triangle top and two protruding legs
+- The game field will be a black background with random stars (about 5% full) and a white flat lunar ground take takes 1% of the screen space.
+- The lander will fall from the top at a rate approaching the white flat lunar ground
+- The fall speed will be calculated at the gravitational rate of the moon, which is 1.625 meters per second squared
+- The lander can "fire it's engines" by hitting the spacebar. When the engines fire it will counter the gravitational fall and slow the descent of the lander.
+- If the engines stop firing the lunar gravity will pull the lander faster to the ground.
+- The engines consume fuel at a rate of 1 per second, and the lander has 50 fuel to start.
+- The game starts by hitting the letter G and shows the lander at the top and the game field
+- There needs to be a top banner with the text "Lunar Lander"
+- There needs to be basic instructions at the bottom, stating what button to start the game and what button to engage the engines.
+- There needs to be a scoreboard on the side showing the height (in meters) the lunar lander is from the lunar surface, the rate of descent (as a positive integer), and how much fuel is left.
+- If the lander hits the surface where the descent rate is less than 1.0 then it's a safe landing, otherwise it's a crash.
+- If there is crash the words "CRASH" in red show up in the middle of the game field
+- If there is a safe landing the words "SAFE" show up in green in the middle of the game field.
+- Hitting G starts a new game, and this needs to show up under "CRASH" or "SAFE" in white letters under the middle of the game field.
+====================================================================================================
+cool-fishtank:
+- We're going to create a fishtank in a browser window
+- Clicking in a fishtank will spawn a goldfish.
+- Goldfish will move all around the fishtank. 
+- Clicking above the fishtank will spawn brown fish flakes that will fall fast from above the water, and slower through the water until it reaches the bottom. If it reaches the bottom it will stay for 20 seconds before it fades away.
+- goldfish will be hungry, and their hunger will be determined by a score of 0 to 10. They start off with a value of 5 and that decreases by 1 every minute. If a goldfishs hunger reaches 0 it will die and sink to the bottom of the tank, and then fade away after 20 seconds. If a goldfish eats brown fish flakes it will increase it's hunger by 1 until it reaches 10. A goldfish will never eat a fish flake if it's at the bottom of the tank.
+- If I mousever a fish I will see the value of their hunger at my mouse pointer.
+- I should have a button at the top saying "Feed" that will drop a brown fish flake into the top of the water.
+- When fish need to eat they will approach the fish flake. They only eat the flake when they make contact with the flake after swimming towards it.
+- The top will have a banner with the text "Cool Fish Tank"
+- Under the fishtank is instructions, stating "Click in the fish tank to make a fish. Watch the fishs hunger by moving your mouse over the fish. Click Feed to feed the fish"
+- A fishs speed is increased by the hunger score of the fish, so a hunger score of 1 increases the fishs speed by 10% and a hunger score increases the fishs speed by 100%
+====================================================================================================
+random-spirograph
+- We're going to create a browser experience
+- Create a canvas, black background. Make it the complete inner dimensions of a web browser
+- Create a random spirograph pattern. Start at one calculated point and increment it. Allow the + and - keyboard buttons to accelerate or decelerate the speed of the process.
+- The pattern will place a dot of a random color, and the colors will shift to a new one per every new plotted point.
+- The pattern created will repeat.
+====================================================================================================
+super-tic-tac-toe:
+- We're going to create a javascript game that can run in a browser window.
+- This is a tic-tac-toe game, but it will be 9 total separate games played in a 3x3 grid
+- Whenever X or O wins one game, the entire game becomes the X or O. If there is not a clear winner of that game then whomever has the most squares taken will win that square.
+- The winner will be whomever gets tic-tac-toe of all the tic-tac-toes
+- Win X or O wins the individual game the game should hide and the X or O should be visible
+====================================================================================================
+self-destructive-android-app:
+- We're going to create an Android Application that can be compiled to an APK.
+- The Application loads up with a black background
+- The Application will make a request to https://example.com/apk-123/fun.json to get a list of data. A functional example would be { "data": [ "First", "Second", "Third" ] }
+- The Application will parse the json data and randomly choose an entry in "data"
+- The Application will display that value randomly chosen in "data" to the center of the screen.
+- Once the value has been displayed, the Application will wait 10 seconds before terminating.
+- The Applications name to be displayed to the user will be 10s-of-fun
+- If the Application fails to get fun.json it would resort to default-fun.json which contains '{ "data": [ "Jump Up And Down!" ] }' and would come bundled with the APK
+====================================================================================================
+Hexa-Game:
+- We're going to create a javascript game that can run in a browser window.
+- Define an area where 3 hexagons exist, the border of each is of one unique primary color.
+- You can click on a hexagon to pick it up and move it around.
+- You can place a picked up hexagon over another hexagon and it will create a third hexagon where the border color of the new hexagon will be the mix of the two parent hexagons. When this third hexagon is created all three hexagons will be separated from each other so their borders do not touch.
+- Hexagons at rest cannot overlap over hexagons. If a hexagon is created it needs to make sure it won't exist over another hexagon. When hexagons are spaced away from each other they need to make sure they're not overlapping existing hexagons.
+- Hexagons can't leave the play area, especially when they are created from the merging of two hexagons.
+- When mousing over a hexagon I'd like the hex RGB to show at the mouse cursor and disappear when the user picks up the hexagon.
+- I need a scoreboard with a counter of hexagons and uniquely colored hexagons
+- Above the scoreboard I need the title to be "Hexa-Game!"
+- When a third hexagon is created all three centers need to be connected with a while line to form a triangle that fades after half a second.
