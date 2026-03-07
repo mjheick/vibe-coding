@@ -1,6 +1,22 @@
 ====================================================================================================
 = A list of all prompts for Kiro/Claude to make the necessary projects. Recent to oldest.
 ====================================================================================================
+ledger-ui:
+- We're going to scope out a UI for a bank ledger website
+- I need a table that would show 7 columns: two separate date columns, a description column, a category column, two separate price columns, and a column to select the column and affect it by a menu
+- There is a header row at the top that describes the columns
+- There is a money color scheme with a comfortable font for this ui
+- when I mouseover a row it needs to be highlighted with a visually pleasant color
+- So we can better figure out our needs I'll need sample data placed into 10 rows.
+- Lets put this all into one file
+- I need this ledger to be response with implementing bootstrap 5
+- I like the curvy outside but I don't need the title "Account Ledger". This needs to be removed. 
+- Mouseing over the rows does not highlight with a visually pleasant color.  This needs to be fixed
+- I'd like a representative icon that precedes a description that would link to a receipt for that transaction. It does not need to be an additional column, just exist before the description.
+- Above this ledger I need a menu system that allows me to select the account, year, and month in dropdowns. Lets pre-fill in some data for account (checking, savings), year (2016 to 2026), and months (Jan, Feb, ..., Dec). This menu system also needs to be responsive and visually comfortable.
+- Above the Account/Year/Month dropdowns I need a button to "Add New Entry". It will take in the following inputs: Date (with a calendar selection), Item (which would take in whatever item was purchased), Category (a dropdown of pre-filled in categories), Amount (which would take in a dollar amount), and a submit button to send the data via POST or a clear button to hide the "Add New Entry" flow.
+- The up/down arrows for Amount are unneccesary
+====================================================================================================
 wordy-balloons:
 - We're gonna make a fun little interactive game involving balloons
 - This will be run in a browser window
