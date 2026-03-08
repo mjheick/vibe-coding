@@ -1,6 +1,12 @@
 ====================================================================================================
 = A list of all prompts for Kiro/Claude to make the necessary projects. Recent to oldest.
 ====================================================================================================
+camera-ascii-face (0.67):
+- I need a browser experience that uses the built-in camera
+- I need the camera to take pictures, but instead of showing what the camera sees I need the code to interpolate it as ASCII characters and display them instead
+- To be clear, the browsers camera will stream data and will display the data as ASCII characters.
+- I need to be able to pause the camera so I can look at my pretty self
+====================================================================================================
 prime-troubles (0.25 + 0.25 + 0.39 + 0.35 + 0.27 + 0.28 + 0.31 + 0.47 + 1.13 + 0.34):
 - I need a program that will calculate prime numbers between 0 and 101 that satisfy the formula ((2 * x) - 1) % 7 = 4
 - This program should be written in PHP
