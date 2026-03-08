@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCII Camera</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+      font-family: monospace;
+    }
+    #ascii {
+      color: #0f0;
+      font-size: 6px;
+      line-height: 6px;
+      white-space: pre;
+      letter-spacing: 1px;
+    }
+    video, canvas { display: none; }
+    #controls {
+      margin-bottom: 12px;
+    }
+    button {
+      background: #0f0;
+      color: #000;
+      border: none;
+      padding: 8px 20px;
+      font-family: monospace;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover { opacity: 0.8; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <button id="startBtn">Start Camera</button>
+    <button id="pauseBtn" style="display:none;">Pause</button>
+  </div>
+  <div id="ascii" role="img" aria-label="Live ASCII art from camera feed"></div>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
+  <script src="app.js"></script>
+</body>
+</html>
