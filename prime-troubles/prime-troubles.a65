@@ -1,0 +1,232 @@
+; Prime Troubles - 6502 Assembly for Commodore 64
+; Finds primes 0-101 where ((2*x)-1) % 7 = 4
+; Assemble with: xa65, ACME, or similar 6502 assembler
+; Load address: $C000
+
+* = $C000
+
+CHROUT = $FFD2          ; KERNAL routine: print char in A
+
+; ---- Zero page workspace ----
+CURRENT = $FB           ; current number being tested
+DIVISOR = $FC           ; trial divisor
+TEMP    = $FD           ; temp for division
+REMAIN  = $FE           ; remainder
+
+; ---- Entry point ----
+START:
+        ; Print header
+        LDX #0
+.HDRLP: LDA HEADER,X
+        BEQ .HDONE
+        JSR CHROUT
+        INX
+        BNE .HDRLP
+.HDONE:
+        LDA #13
+        JSR CHROUT
+        LDA #13
+        JSR CHROUT
+
+        LDA #0
+        STA CURRENT
+
+MAINLOOP:
+        LDA CURRENT
+        CMP #102
+        BCS ALLDONE
+
+        ; Check if prime
+        JSR ISPRIME
+        BEQ NEXT            ; not prime
+
+        ; Check ((2*x)-1) % 7 == 4
+        LDA CURRENT
+        ASL A               ; 2 * x
+        SEC
+        SBC #1              ; (2*x) - 1
+        STA TEMP
+
+        ; Compute TEMP % 7
+        ; Repeated subtraction
+        LDA TEMP
+.MOD7:  CMP #7
+        BCC .MODDN
+        SEC
+        SBC #7
+        JMP .MOD7
+.MODDN: CMP #4
+        BNE NEXT
+
+        ; Print the number
+        LDA CURRENT
+        JSR PRINTNUM
+        LDA #13             ; carriage return
+        JSR CHROUT
+
+NEXT:
+        INC CURRENT
+        JMP MAINLOOP
+
+ALLDONE:
+        RTS
+
+; -----------------------------------------------
+; ISPRIME: Test if CURRENT is prime
+; Returns: A != 0 if prime, A == 0 if not
+; -----------------------------------------------
+ISPRIME:
+        LDA CURRENT
+        CMP #2
+        BCC .NOTPRM         ; < 2
+        BEQ .YESPRM         ; == 2
+        CMP #3
+        BEQ .YESPRM         ; == 3
+        CMP #4
+        BCC .YESPRM
+
+        ; Check even
+        AND #$01
+        BEQ .NOTPRM
+
+        ; Check % 3
+        LDA CURRENT
+        STA TEMP
+        JSR MOD3
+        LDA REMAIN
+        BEQ .NOTPRM
+
+        ; Trial division from 5, step +2/+4
+        LDA #5
+        STA DIVISOR
+
+.TLOOP:
+        ; Check DIVISOR * DIVISOR > CURRENT
+        LDA DIVISOR
+        TAX
+        ; Multiply DIVISOR * DIVISOR
+        LDA #0
+        CLC
+.SQMLP: DEX
+        BMI .SQMDN
+        ADC DIVISOR
+        BCS .YESPRM         ; overflow means i*i > 255 > 101
+        JMP .SQMLP
+.SQMDN:
+        CMP CURRENT
+        BEQ .CHKDIV         ; i*i == n, check it
+        BCS .YESPRM         ; i*i > n, prime
+
+.CHKDIV:
+        ; n % DIVISOR
+        LDA CURRENT
+        STA TEMP
+        LDX DIVISOR
+        JSR DIVMOD
+        LDA REMAIN
+        BEQ .NOTPRM
+
+        ; n % (DIVISOR + 2)
+        LDA DIVISOR
+        CLC
+        ADC #2
+        TAX
+        LDA CURRENT
+        STA TEMP
+        JSR DIVMOD
+        LDA REMAIN
+        BEQ .NOTPRM
+
+        ; DIVISOR += 6
+        LDA DIVISOR
+        CLC
+        ADC #6
+        STA DIVISOR
+        JMP .TLOOP
+
+.YESPRM:
+        LDA #1
+        RTS
+.NOTPRM:
+        LDA #0
+        RTS
+
+; -----------------------------------------------
+; MOD3: REMAIN = TEMP % 3
+; -----------------------------------------------
+MOD3:
+        LDA TEMP
+        LDX #3
+        JSR DIVMOD
+        RTS
+
+; -----------------------------------------------
+; DIVMOD: REMAIN = TEMP % X
+; Divides TEMP by X via repeated subtraction
+; -----------------------------------------------
+DIVMOD:
+        STX DIVISOR+1       ; borrow a byte (safe, stack area not used)
+        LDA TEMP
+.DVLP:  CMP DIVISOR+1
+        BCC .DVDN
+        SEC
+        SBC DIVISOR+1
+        JMP .DVLP
+.DVDN:  STA REMAIN
+        RTS
+
+; -----------------------------------------------
+; PRINTNUM: Print A as decimal (0-255)
+; -----------------------------------------------
+PRINTNUM:
+        TAX
+        LDA #0
+        STA REMAIN          ; hundreds flag
+
+        ; Hundreds
+        TXA
+        LDY #0
+.HND:   CMP #100
+        BCC .TENS
+        SEC
+        SBC #100
+        INY
+        JMP .HND
+.TENS:  PHA                 ; save remainder
+        TYA
+        BEQ .SKPH           ; skip leading zero
+        ORA #$30
+        JSR CHROUT
+        LDA #1
+        STA REMAIN          ; printed something
+.SKPH:
+        ; Tens
+        PLA
+        LDY #0
+.TNLP:  CMP #10
+        BCC .ONES
+        SEC
+        SBC #10
+        INY
+        JMP .TNLP
+.ONES:  PHA
+        TYA
+        BNE .PRTT
+        LDA REMAIN
+        BEQ .SKPT           ; skip leading zero
+        TYA
+.PRTT:  ORA #$30
+        JSR CHROUT
+.SKPT:
+        ; Ones (always print)
+        PLA
+        ORA #$30
+        JSR CHROUT
+        RTS
+
+; -----------------------------------------------
+; Data
+; -----------------------------------------------
+HEADER:
+        .TEXT "PRIMES 0-101 ((2*X)-1)%7=4"
+        .BYTE 0

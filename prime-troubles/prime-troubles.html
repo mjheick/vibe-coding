@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prime Troubles</title>
+    <style>
+        body {
+            background: #1a1a2e;
+            color: #eee;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+        h2 { margin-bottom: 12px; color: #aaa; }
+        textarea {
+            width: 320px;
+            height: 260px;
+            background: #16213e;
+            color: #7ec8e3;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 1rem;
+            font-family: monospace;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <h2>Primes 0-101 where ((2*x)-1) % 7 = 4</h2>
+    <textarea id="results" readonly></textarea>
+    <script>
+        function isPrime(n) {
+            if (n < 2) return false;
+            if (n < 4) return true;
+            if (n % 2 === 0 || n % 3 === 0) return false;
+            for (let i = 5; i * i <= n; i += 6) {
+                if (n % i === 0 || n % (i + 2) === 0) return false;
+            }
+            return true;
+        }
+
+        const results = [];
+        for (let x = 0; x <= 101; x++) {
+            if (isPrime(x) && ((2 * x) - 1) % 7 === 4) {
+                results.push(x);
+            }
+        }
+
+        document.getElementById('results').value = results.join('\n');
+    </script>
+</body>
+</html>

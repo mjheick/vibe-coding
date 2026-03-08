@@ -1,0 +1,214 @@
+prime-troubles:
+
+- I need a program that will calculate prime numbers between 0 and 101 that satisfy the formula ((2 * x) - 1) % 7 = 4
+
+- This program should be written in php
+
+Kiro
+Accepted creation of
+
+prime-troubles.php
+
+
+prime-troubles.php is ready. Run it with php prime-troubles.php. It iterates 0–101, checks primality, and filters by ((2 * x) - 1) % 7 === 4.
+
+Credits used: 0.25
+Elapsed time: 8s
+
+
+Checkpoint
+Restore
+- I need the same program written in C
+
+Kiro
+Accepted creation of
+
+prime-troubles.c
+
+
+prime-troubles.c is ready. Compile and run with:
+
+gcc -o prime-troubles prime-troubles.c && ./prime-troubles
+Same logic as the PHP version, just in C.
+
+Credits used: 0.25
+Elapsed time: 7s
+
+
+Checkpoint
+Restore
+- I need the same program written in Assembler for 8086 processors
+
+Kiro
+Accepted creation of
+
+prime-troubles.asm
+
+
+prime-troubles.asm is ready. It's written for NASM targeting DOS .COM format (8086 real mode).
+
+To assemble and run:
+
+nasm -f bin -o prime.com prime-troubles.asm
+Then run prime.com in DOSBox or any DOS-compatible environment. Same logic as the C and PHP versions — iterates 0–101, checks primality via trial division, filters by ((2*x)-1) % 7 == 4, and prints matches to stdout using DOS int 21h calls.
+
+Credits used: 0.39
+Elapsed time: 22s
+
+
+Checkpoint
+Restore
+- I need the same program written in COBOL
+
+Kiro
+Accepted creation of
+
+prime-troubles.cob
+
+
+prime-troubles.cob is ready. Compile and run with GnuCOBOL:
+
+cobc -x -o prime-troubles prime-troubles.cob && ./prime-troubles
+Same algorithm as the other versions — trial division for primality, then the ((2*x)-1) % 7 = 4 filter, all in classic COBOL style with its paragraph-based flow control.
+
+Credits used: 0.35
+Elapsed time: 16s
+
+
+Checkpoint
+Restore
+- I need the same program written in C++ v14
+
+Kiro
+Accepted creation of
+
+prime-troubles.cpp
+
+
+prime-troubles.cpp is ready. Compile with C++14:
+
+g++ -std=c++14 -o prime-troubles prime-troubles.cpp && ./prime-troubles
+Uses constexpr for the primality check (valid in C++14) and collects results into a vector. Same logic as all the other versions.
+
+Credits used: 0.27
+Elapsed time: 8s
+
+
+Checkpoint
+Restore
+- I need the same program written in BASIC that would work in GWBasic
+
+Kiro
+Accepted creation of
+
+prime-troubles.bas
+
+
+prime-troubles.bas is ready for GW-BASIC. It uses line numbers, GOSUB/RETURN for the primality subroutine, and INT(V/7)*7 for modulo since GW-BASIC's MOD only works on integers (which these are, but the V - INT(V/7)*7 pattern is the classic GW-BASIC idiom). Load it up in GW-BASIC or DOSBox and RUN.
+
+Credits used: 0.28
+Elapsed time: 10s
+
+
+Checkpoint
+Restore
+- I need the same program written in perl. Instead of looping through each number it needs to fork out all the numbers to a separate subprocess for parallel execution.
+
+Kiro
+Accepted creation of
+
+prime-troubles.pl
+
+
+prime-troubles.pl is ready. Run it with:
+
+perl prime-troubles.pl
+Each number 0–101 gets its own forked subprocess. Children check primality and the formula, then write matches back to the parent through a shared pipe. The parent collects all results, sorts them numerically, and prints them out.
+
+Credits used: 0.31
+Elapsed time: 12s
+
+
+Checkpoint
+Restore
+- I need the same program written for a 6502 assembler so I can run it on my Commodore 64
+
+Kiro
+Accepted creation of
+
+prime-troubles.a65
+
+
+prime-troubles.a65 is ready for your C64. It loads at $C000 and uses the KERNAL CHROUT ($FFD2) for screen output.
+
+To use it:
+
+Assemble with your preferred 6502 assembler (ACME, xa65, 64tass, etc.)
+Load the resulting binary on your C64
+Execute with SYS 49152 (which is $C000 in decimal)
+The program uses zero page locations $FB–$FE as workspace, trial division via repeated subtraction for primality, and the same ((2*x)-1) % 7 == 4 formula check. Numbers print as decimal with leading zeros suppressed.
+
+Credits used: 0.47
+Elapsed time: 33s
+
+
+Checkpoint
+Restore
+- I need the same program written for my 6502 assembler to output to the screen so when I compile it and load it on a cartridge it will display the results on my classic Nintendo system
+
+Kiro
+This is a fun one — NES has no OS or KERNAL, so we need to set up the PPU, load a font into CHR, and write tiles to the nametable directly. I'll target NROM (mapper 0) with CHR-RAM and an embedded font.
+
+Accepted creation of
+
+prime-troubles-nes.asm
+
+
+Now you'll need a linker config for the NES ROM layout:
+
+Accepted creation of
+
+nes.cfg
+
+
+prime-troubles-nes.asm and nes.cfg are ready. Build with the cc65 toolchain:
+
+ca65 prime-troubles-nes.asm -o prime.o
+ld65 prime.o -C nes.cfg -o prime-troubles.nes
+Then load prime-troubles.nes in an emulator (FCEUX, Mesen, etc.) or burn it to a cartridge.
+
+What's happening under the hood:
+
+iNES header declares NROM mapper 0 with 32KB PRG and CHR-RAM
+On reset: initializes PPU, uploads a bitmap font (0–9, A–Z) into CHR-RAM pattern table, sets a black/white palette, clears the nametable
+Runs the same prime + formula logic, writes each matching number as tile indices directly to the PPU nametable at $2000
+Results display in rows of 5 across the screen, then enables rendering and halts in an infinite loop
+Credits used: 1.13
+Elapsed time: 1m 32s
+
+
+Checkpoint
+Restore
+- Finally, I need this program written in javascript so it displays the results in a text box when I load it up in a web browser
+
+Kiro
+Accepted creation of
+
+prime-troubles.html
+
+
+prime-troubles.html is ready — open it in a browser and the results populate in a text box on load. Same logic, just JavaScript this time.
+
+Credits used: 0.34
+Elapsed time: 13s
+
+
+
+1 change accepted
+(
+View all
+)
+Revert
+
+
+prime-troubles.html
