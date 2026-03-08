@@ -1,6 +1,13 @@
 ====================================================================================================
 = A list of all prompts for Kiro/Claude to make the necessary projects. Recent to oldest.
 ====================================================================================================
+camera-code-reader:
+- Need an application that will run in a browser window
+- There will be a button that will allow me to use the camera on my computer or phone
+- Once the camera is active I need it to scan the field for UPCs or QR codes
+- I can press a button that would be overlayed on the camera to close the active reading of the screen area
+- Once it detects a UPC or QR code I need it to close the camera automatically and present that code in a text box
+====================================================================================================
 camera-ascii-face (0.67):
 - I need a browser experience that uses the built-in camera
 - I need the camera to take pictures, but instead of showing what the camera sees I need the code to interpolate it as ASCII characters and display them instead
