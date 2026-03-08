@@ -1,6 +1,19 @@
 ====================================================================================================
 = A list of all prompts for Kiro/Claude to make the necessary projects. Recent to oldest.
 ====================================================================================================
+prime-troubles (0.25 + 0.25 + 0.39 + 0.35 + 0.27 + 0.28 + 0.31 + 0.47 + 1.13 + 0.34):
+- I need a program that will calculate prime numbers between 0 and 101 that satisfy the formula ((2 * x) - 1) % 7 = 4
+- This program should be written in PHP
+- I need the same program written in C
+- I need the same program written in Assembler for 8086 processors
+- I need the same program written in COBOL
+- I need the same program written in C++ v14
+- I need the same program written in BASIC that would work in GWBasic
+- I need the same program written in perl. Instead of looping through each number it needs to fork out all the numbers to a separate subprocess for parallel execution.
+- I need the same program written for a 6502 assembler so I can run it on my Commodore 64
+- I need the same program written for my 6502 assembler to output to the screen so when I compile it and load it on a cartridge it will display the results on my classic Nintendo system
+- Finally, I need this program written in javascript so it displays the results in a text box when I load it up in a web browser
+====================================================================================================
 ledger-ui (0.97):
 - We're going to scope out a UI for a bank ledger website
 - I need a table that would show 7 columns: two separate date columns, a description column, a category column, two separate price columns, and a column to select the column and affect it by a menu
