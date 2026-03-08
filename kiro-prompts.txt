@@ -1,7 +1,7 @@
 ====================================================================================================
 = A list of all prompts for Kiro/Claude to make the necessary projects. Recent to oldest.
 ====================================================================================================
-ledger-ui:
+ledger-ui (0.97):
 - We're going to scope out a UI for a bank ledger website
 - I need a table that would show 7 columns: two separate date columns, a description column, a category column, two separate price columns, and a column to select the column and affect it by a menu
 - There is a header row at the top that describes the columns
@@ -17,7 +17,7 @@ ledger-ui:
 - Above the Account/Year/Month dropdowns I need a button to "Add New Entry". It will take in the following inputs: Date (with a calendar selection), Item (which would take in whatever item was purchased), Category (a dropdown of pre-filled in categories), Amount (which would take in a dollar amount), and a submit button to send the data via POST or a clear button to hide the "Add New Entry" flow.
 - The up/down arrows for Amount are unneccesary
 ====================================================================================================
-wordy-balloons:
+wordy-balloons (0.49):
 - We're gonna make a fun little interactive game involving balloons
 - This will be run in a browser window
 - I'd like a balloon to spawn at the bottom of the screen. It can spawn at any random position within 80% of the center of the screen. The color of the balloon has to be either a primary color, a secondary color, white, black, pink, or brown.
@@ -29,7 +29,7 @@ wordy-balloons:
 - I would like balloons to randomly spawn as well as manually-entered balloons. The random balloons do not change the position of the character balloons if an active timer exists, but if no timer exists between balloons and a key were to be pressed it would spawn next to the previous balloon.
 - I need the shrapnel logic to not fade out when hitting the top. It needs to make the complete trip down to the bottom of the window
 ====================================================================================================
-keyboard-tree-maker
+keyboard-tree-maker (0.63):
 - I'd like a tree that has branches dictated by the keys entered from the keyboard
 - This will be running in a web browser
 - There will be a text box at the top that will take input from the user
@@ -46,12 +46,13 @@ keyboard-tree-maker
 - The timing is showing minutes when seconds is what the timing is actually. I think the calculations are incorrect somehow. Please review the math on that
 - The report at the bottom is not showing more than 6 entries? I have longer values in the textbox, so lets limit the textbox to 10 characters and map that limit to the timings display
 ====================================================================================================
-no-old-youtube:
+no-old-youtube (0.38):
 - I need a tampermonkey script that runs on the domain youtube.com and is hosted at https://drive.corp.amazon.com/documents/mjheick@/TamperMonkey/no-old-youtube
 - The scripts main purpose is to hide youtube videos that were created over 1 year ago
 - It will show how many videos have been hidden and provide direct links to those hidden videos in the browser console
+- This needs to work on the main page as well as the side links when viewing a video
 ====================================================================================================
-lunar-lander:
+lunar-lander (0.59):
 - We're going to create a spaceship lander game in a browser window
 - The lander will be shown as a white square with a silver triangle top and two protruding legs
 - The game field will be a black background with random stars (about 5% full) and a white flat lunar ground take takes 1% of the screen space.
@@ -69,7 +70,7 @@ lunar-lander:
 - If there is a safe landing the words "SAFE" show up in green in the middle of the game field.
 - Hitting G starts a new game, and this needs to show up under "CRASH" or "SAFE" in white letters under the middle of the game field.
 ====================================================================================================
-cool-fishtank:
+cool-fishtank (0.77):
 - We're going to create a fishtank in a browser window
 - Clicking in a fishtank will spawn a goldfish.
 - Goldfish will move all around the fishtank. 
@@ -82,21 +83,21 @@ cool-fishtank:
 - Under the fishtank is instructions, stating "Click in the fish tank to make a fish. Watch the fishs hunger by moving your mouse over the fish. Click Feed to feed the fish"
 - A fishs speed is increased by the hunger score of the fish, so a hunger score of 1 increases the fishs speed by 10% and a hunger score increases the fishs speed by 100%
 ====================================================================================================
-random-spirograph
+random-spirograph (0.33):
 - We're going to create a browser experience
 - Create a canvas, black background. Make it the complete inner dimensions of a web browser
 - Create a random spirograph pattern. Start at one calculated point and increment it. Allow the + and - keyboard buttons to accelerate or decelerate the speed of the process.
 - The pattern will place a dot of a random color, and the colors will shift to a new one per every new plotted point.
 - The pattern created will repeat.
 ====================================================================================================
-super-tic-tac-toe:
+super-tic-tac-toe (0.51):
 - We're going to create a javascript game that can run in a browser window.
 - This is a tic-tac-toe game, but it will be 9 total separate games played in a 3x3 grid
 - Whenever X or O wins one game, the entire game becomes the X or O. If there is not a clear winner of that game then whomever has the most squares taken will win that square.
 - The winner will be whomever gets tic-tac-toe of all the tic-tac-toes
 - Win X or O wins the individual game the game should hide and the X or O should be visible
 ====================================================================================================
-self-destructive-android-app:
+self-destructive-android-app (1.15):
 - We're going to create an Android Application that can be compiled to an APK.
 - The Application loads up with a black background
 - The Application will make a request to https://example.com/apk-123/fun.json to get a list of data. A functional example would be { "data": [ "First", "Second", "Third" ] }
@@ -106,7 +107,7 @@ self-destructive-android-app:
 - The Applications name to be displayed to the user will be 10s-of-fun
 - If the Application fails to get fun.json it would resort to default-fun.json which contains '{ "data": [ "Jump Up And Down!" ] }' and would come bundled with the APK
 ====================================================================================================
-Hexa-Game:
+hexa-game (0.75):
 - We're going to create a javascript game that can run in a browser window.
 - Define an area where 3 hexagons exist, the border of each is of one unique primary color.
 - You can click on a hexagon to pick it up and move it around.
