@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gravity Line Thingy</title>
+  <style>
+    * { margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="simCanvas"></canvas>
+  <script>
+    // Constants
+    const GRAVITY = 500;
+    const ANGULAR_VELOCITY = 1.0;
+    const MAX_TILT = Math.PI / 3;
+    const CIRCLE_RADIUS = 20;
+    const TARGET_ZONE_SIZE = 80;
+    const TARGET_HALF_SIZE = 40;
+    const WIN_VELOCITY_THRESHOLD = 0.5;
+    const MIN_INITIAL_ANGLE = 0.05;
+    const LINE_COLOR = "#fff";
+    const CIRCLE_COLOR = "#e74c3c";
+    const BG_COLOR = "#2c3e50";
+    const TARGET_ZONE_COLOR = "rgba(46, 204, 113, 0.4)";
+    const TARGET_ZONE_BORDER = "#2ecc71";
+    const HUD_COLOR = "#ecf0f1";
+    const LINE_WIDTH = 3;
+
+    // Input state
+    const inputState = {
+      leftPressed: false, rightPressed: false,
+      spacePressed: false, rPressed: false
+    };
+
+    // Simulation state
+    const simState = {
+      phase: "paused", tiltAngle: 0,
+      circlePos: 0, circleVelocity: 0
+    };
+
+    // Random non-zero angle in [-MAX_TILT, MAX_TILT]
+    function randomNonZeroAngle() {
+      let angle;
+      do {
+        angle = (Math.random() * 2 - 1) * MAX_TILT;
+      } while (Math.abs(angle) < MIN_INITIAL_ANGLE);
+      return angle;
+    }
+
+    // Random start position outside target zone
+    function randomStartPosition(halfLineLength) {
+      const minDist = TARGET_HALF_SIZE;
+      const maxDist = halfLineLength;
+      const dist = minDist + Math.random() * (maxDist - minDist);
+      return Math.random() < 0.5 ? -dist : dist;
+    }
+
+    // Canvas initialization
+    function initCanvas() {
+      const c = document.getElementById("simCanvas");
+      c.width = window.innerWidth;
+      c.height = window.innerHeight;
+      window.addEventListener("resize", () => {
+        c.width = window.innerWidth;
+        c.height = window.innerHeight;
+      });
+      return c.getContext("2d");
+    }
+
+    // Input handler
+    function setupInputHandlers() {
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") inputState.leftPressed = true;
+        if (e.key === "ArrowRight") inputState.rightPressed = true;
+        if (e.key === " ") inputState.spacePressed = true;
+        if (e.key === "r" || e.key === "R") inputState.rPressed = true;
+      });
+      window.addEventListener("keyup", (e) => {
+        if (e.key === "ArrowLeft") inputState.leftPressed = false;
+        if (e.key === "ArrowRight") inputState.rightPressed = false;
+      });
+    }
+
+    // Reset simulation
+    function resetSimulation() {
+      simState.tiltAngle = randomNonZeroAngle();
+      simState.circlePos = randomStartPosition(canvas.width / 2);
+      simState.circleVelocity = 0;
+      simState.phase = "paused";
+    }
+
+    // Physics engine (phase-aware)
+    function updatePhysics(dt, canvas) {
+      if (dt > 0.1) dt = 0.1;
+
+      // Tilt changes apply in paused and active phases
+      if (simState.phase !== "won") {
+        if (inputState.leftPressed) simState.tiltAngle -= ANGULAR_VELOCITY * dt;
+        if (inputState.rightPressed) simState.tiltAngle += ANGULAR_VELOCITY * dt;
+        if (simState.tiltAngle < -MAX_TILT) simState.tiltAngle = -MAX_TILT;
+        if (simState.tiltAngle > MAX_TILT) simState.tiltAngle = MAX_TILT;
+      }
+
+      // Phase transitions
+      if (simState.phase === "paused" && inputState.spacePressed) {
+        simState.phase = "active";
+      }
+      if (simState.phase === "won" && inputState.rPressed) {
+        resetSimulation();
+      }
+
+      // Clear single-shot flags
+      inputState.spacePressed = false;
+      inputState.rPressed = false;
+
+      // Ball physics only in active phase
+      if (simState.phase === "active") {
+        const a = GRAVITY * Math.sin(simState.tiltAngle);
+        simState.circleVelocity += a * dt;
+        simState.circlePos += simState.circleVelocity * dt;
+
+        const halfLineLength = canvas.width / 2;
+        if (simState.circlePos < -halfLineLength) {
+          simState.circlePos = -halfLineLength;
+          simState.circleVelocity = 0;
+        }
+        if (simState.circlePos > halfLineLength) {
+          simState.circlePos = halfLineLength;
+          simState.circleVelocity = 0;
+        }
+
+        // Win condition
+        if (Math.abs(simState.circlePos) <= TARGET_HALF_SIZE - CIRCLE_RADIUS &&
+            Math.abs(simState.circleVelocity) < WIN_VELOCITY_THRESHOLD) {
+          simState.phase = "won";
+        }
+      }
+    }
+
+    // Renderer
+    function render(ctx, canvas, simState) {
+      ctx.fillStyle = BG_COLOR;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const pivotX = canvas.width / 2;
+      const pivotY = canvas.height / 2;
+      const halfLength = canvas.width / 2;
+      const angle = simState.tiltAngle;
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+
+      // Draw line
+      ctx.beginPath();
+      ctx.moveTo(pivotX - halfLength * cosA, pivotY - halfLength * sinA);
+      ctx.lineTo(pivotX + halfLength * cosA, pivotY + halfLength * sinA);
+      ctx.strokeStyle = LINE_COLOR;
+      ctx.lineWidth = LINE_WIDTH;
+      ctx.stroke();
+
+      // Draw target zone (rotated square at pivot, behind ball)
+      ctx.save();
+      ctx.translate(pivotX, pivotY);
+      ctx.rotate(angle);
+      ctx.fillStyle = TARGET_ZONE_COLOR;
+      ctx.fillRect(-TARGET_HALF_SIZE, -TARGET_HALF_SIZE, TARGET_ZONE_SIZE, TARGET_ZONE_SIZE);
+      ctx.strokeStyle = TARGET_ZONE_BORDER;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-TARGET_HALF_SIZE, -TARGET_HALF_SIZE, TARGET_ZONE_SIZE, TARGET_ZONE_SIZE);
+      ctx.restore();
+
+      // Draw ball on top of line
+      const circleX = pivotX + simState.circlePos * cosA - CIRCLE_RADIUS * sinA;
+      const circleY = pivotY + simState.circlePos * sinA - CIRCLE_RADIUS * cosA;
+      ctx.beginPath();
+      ctx.arc(circleX, circleY, CIRCLE_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = CIRCLE_COLOR;
+      ctx.fill();
+
+      // HUD overlay
+      ctx.fillStyle = HUD_COLOR;
+      ctx.textAlign = "center";
+      ctx.font = "bold 24px sans-serif";
+      ctx.fillText("Gravity Line Thingy", canvas.width / 2, 40);
+      ctx.font = "16px sans-serif";
+      const angleDeg = (simState.tiltAngle * 180 / Math.PI).toFixed(1);
+      ctx.fillText("Angle: " + angleDeg + "°", canvas.width / 2, 65);
+      ctx.fillText("Velocity: " + Math.abs(simState.circleVelocity).toFixed(1), canvas.width / 2, 85);
+
+      // State-dependent messages
+      ctx.textAlign = "center";
+      if (simState.phase === "paused") {
+        ctx.font = "bold 32px sans-serif";
+        ctx.fillText("Press SPACE to start", canvas.width / 2, canvas.height / 2 + 80);
+      } else if (simState.phase === "won") {
+        ctx.font = "bold 48px sans-serif";
+        ctx.fillStyle = "#2ecc71";
+        ctx.fillText("You Win!", canvas.width / 2, canvas.height / 2 - 60);
+        ctx.font = "24px sans-serif";
+        ctx.fillStyle = HUD_COLOR;
+        ctx.fillText("Press R to restart", canvas.width / 2, canvas.height / 2 - 25);
+      }
+    }
+
+    // Game loop
+    let lastTimestamp = 0;
+    function gameLoop(timestamp) {
+      let dt = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+      if (dt > 0.1) dt = 0.1;
+      updatePhysics(dt, canvas);
+      render(ctx, canvas, simState);
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Initialization
+    const canvas = document.getElementById("simCanvas");
+    const ctx = initCanvas();
+    resetSimulation();
+    setupInputHandlers();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
