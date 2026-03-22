@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Drawing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 16px;
+            color: #e0e0e0;
+            font-size: 1.5rem;
+        }
+
+        canvas {
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            cursor: crosshair;
+            background-color: #16213e;
+            display: block;
+        }
+
+        #info-panel {
+            margin-top: 16px;
+            padding: 16px 24px;
+            background-color: #16213e;
+            border: 1px solid #4a4a6a;
+            border-radius: 8px;
+            min-width: 300px;
+            text-align: center;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        #info-panel .label {
+            color: #8888aa;
+        }
+
+        #info-panel .value {
+            font-weight: bold;
+        }
+
+        .inscribed-color { color: #00e676; }
+        .circumscribed-color { color: #ff5252; }
+        .score-color { color: #ffd740; }
+    </style>
+</head>
+<body>
+    <h1>Circle Drawing Game</h1>
+    <canvas id="gameCanvas"></canvas>
+    <div id="info-panel">Draw a shape to see your score!</div>
+
+    <script>
+    // ===== Application State (Task 2.1) =====
+    var points = [];
+    var isDrawing = false;
+    var inscribed = null;
+    var circumscribed = null;
+    var score = null;
+    var canvas, ctx;
+
+    // ===== Canvas Manager (Task 1.4, 1.5) =====
+    function initCanvas() {
+        canvas = document.getElementById('gameCanvas');
+        canvas.width = 700;
+        canvas.height = 500;
+        ctx = canvas.getContext('2d');
+        clearCanvas(ctx, canvas);
+        return ctx;
+    }
+
+    function clearCanvas(ctx, canvas) {
+        ctx.fillStyle = '#16213e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // ===== UI Controller (Task 3.3) =====
+    function showMessage(msg) {
+        document.getElementById('info-panel').innerHTML = msg;
+    }
+
+    function clearResults() {
+        document.getElementById('info-panel').innerHTML = 'Draw a shape to see your score!';
+    }
+
+    function displayResults(inscribedR, circumscribedR, score) {
+        var panel = document.getElementById('info-panel');
+        panel.innerHTML =
+            '<span class="label">Inscribed radius:</span> <span class="value inscribed-color">' + inscribedR.toFixed(1) + 'px</span><br>' +
+            '<span class="label">Circumscribed radius:</span> <span class="value circumscribed-color">' + circumscribedR.toFixed(1) + 'px</span><br>' +
+            '<span class="label">Score:</span> <span class="value score-color">' + score.toFixed(4) + '</span>';
+    }
+
+    // ===== Shape Validation (Task 3.1) =====
+    function isValidShape(points) {
+        return points.length >= 3;
+    }
+
+    // ===== Geometry Helpers (Task 4) =====
+    function distToSegment(px, py, ax, ay, bx, by) {
+        var dx = bx - ax;
+        var dy = by - ay;
+        var lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) {
+            var ex = px - ax;
+            var ey = py - ay;
+            return Math.sqrt(ex * ex + ey * ey);
+        }
+        var t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+        var projX = ax + t * dx;
+        var projY = ay + t * dy;
+        var fx = px - projX;
+        var fy = py - projY;
+        return Math.sqrt(fx * fx + fy * fy);
+    }
+
+    function distToPolygon(px, py, points) {
+        var minDist = Infinity;
+        var n = points.length;
+        for (var i = 0; i < n; i++) {
+            var j = (i + 1) % n;
+            var d = distToSegment(px, py, points[i].x, points[i].y, points[j].x, points[j].y);
+            if (d < minDist) {
+                minDist = d;
+            }
+        }
+        return minDist;
+    }
+
+    function pointInPolygon(px, py, points) {
+        var inside = false;
+        var n = points.length;
+        for (var i = 0, j = n - 1; i < n; j = i++) {
+            var xi = points[i].x, yi = points[i].y;
+            var xj = points[j].x, yj = points[j].y;
+            var intersect = ((yi > py) !== (yj > py)) &&
+                (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    }
+
+    // ===== Circumscribed Circle — Welzl's Algorithm (Task 5) =====
+    function isInsideCircle(circle, point) {
+        var dx = point.x - circle.cx;
+        var dy = point.y - circle.cy;
+        return dx * dx + dy * dy <= (circle.r + 1e-6) * (circle.r + 1e-6);
+    }
+
+    function circleFromOne(p) {
+        return { cx: p.x, cy: p.y, r: 0 };
+    }
+
+    function circleFromTwo(p1, p2) {
+        var cx = (p1.x + p2.x) / 2;
+        var cy = (p1.y + p2.y) / 2;
+        var dx = p1.x - p2.x;
+        var dy = p1.y - p2.y;
+        var r = Math.sqrt(dx * dx + dy * dy) / 2;
+        return { cx: cx, cy: cy, r: r };
+    }
+
+    function circleFromThree(p1, p2, p3) {
+        var ax = p1.x, ay = p1.y;
+        var bx = p2.x, by = p2.y;
+        var cx = p3.x, cy = p3.y;
+        var D = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
+        if (Math.abs(D) < 1e-10) {
+            // Collinear — return circle from the two farthest points
+            var d1 = circleFromTwo(p1, p2);
+            var d2 = circleFromTwo(p1, p3);
+            var d3 = circleFromTwo(p2, p3);
+            if (d1.r >= d2.r && d1.r >= d3.r) return d1;
+            if (d2.r >= d1.r && d2.r >= d3.r) return d2;
+            return d3;
+        }
+        var ux = ((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (ay - by)) / D;
+        var uy = ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (bx - ax)) / D;
+        var dx = ax - ux;
+        var dy = ay - uy;
+        var r = Math.sqrt(dx * dx + dy * dy);
+        return { cx: ux, cy: uy, r: r };
+    }
+
+    function welzlHelper(pts, boundary, n) {
+        if (n === 0 || boundary.length === 3) {
+            if (boundary.length === 0) return { cx: 0, cy: 0, r: 0 };
+            if (boundary.length === 1) return circleFromOne(boundary[0]);
+            if (boundary.length === 2) return circleFromTwo(boundary[0], boundary[1]);
+            return circleFromThree(boundary[0], boundary[1], boundary[2]);
+        }
+        var p = pts[n - 1];
+        var circle = welzlHelper(pts, boundary.slice(), n - 1);
+        if (isInsideCircle(circle, p)) {
+            return circle;
+        }
+        boundary.push(p);
+        return welzlHelper(pts, boundary, n - 1);
+    }
+
+    function minEnclosingCircle(points) {
+        // Shuffle a copy to get expected linear time
+        var pts = points.slice();
+        for (var i = pts.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = pts[i];
+            pts[i] = pts[j];
+            pts[j] = tmp;
+        }
+        return welzlHelper(pts, [], pts.length);
+    }
+
+    // ===== Inscribed Circle — Grid Sampling (Task 6) =====
+    function maxInscribedCircle(points) {
+        // Compute bounding box
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (var i = 0; i < points.length; i++) {
+            if (points[i].x < minX) minX = points[i].x;
+            if (points[i].y < minY) minY = points[i].y;
+            if (points[i].x > maxX) maxX = points[i].x;
+            if (points[i].y > maxY) maxY = points[i].y;
+        }
+
+        var bestCx = (minX + maxX) / 2;
+        var bestCy = (minY + maxY) / 2;
+        var bestR = 0;
+
+        var gridSize = 20;
+        var searchMinX = minX;
+        var searchMinY = minY;
+        var searchMaxX = maxX;
+        var searchMaxY = maxY;
+
+        // Iterative refinement: 3 passes with increasing precision
+        for (var pass = 0; pass < 3; pass++) {
+            var stepX = (searchMaxX - searchMinX) / gridSize;
+            var stepY = (searchMaxY - searchMinY) / gridSize;
+
+            for (var gx = 0; gx <= gridSize; gx++) {
+                for (var gy = 0; gy <= gridSize; gy++) {
+                    var px = searchMinX + gx * stepX;
+                    var py = searchMinY + gy * stepY;
+
+                    if (pointInPolygon(px, py, points)) {
+                        var d = distToPolygon(px, py, points);
+                        if (d > bestR) {
+                            bestR = d;
+                            bestCx = px;
+                            bestCy = py;
+                        }
+                    }
+                }
+            }
+
+            // Narrow search area around best candidate
+            var margin = Math.max(stepX, stepY) * 2;
+            searchMinX = bestCx - margin;
+            searchMinY = bestCy - margin;
+            searchMaxX = bestCx + margin;
+            searchMaxY = bestCy + margin;
+        }
+
+        return { cx: bestCx, cy: bestCy, r: bestR };
+    }
+
+    // ===== Score Calculation (Task 7.1) =====
+    function calculateScore(inscribedR, circumscribedR) {
+        if (circumscribedR === 0) return 0;
+        var ratio = inscribedR / circumscribedR;
+        return Math.max(0, Math.min(1, ratio));
+    }
+
+    // ===== Rendering (Task 8) =====
+    function renderShape(ctx, points) {
+        if (points.length < 2) return;
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (var i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    function renderCircle(ctx, cx, cy, r, color, lineWidth) {
+        if (r <= 0) return;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+    }
+
+    function renderResults(ctx, points, inscribed, circumscribed) {
+        clearCanvas(ctx, canvas);
+        renderShape(ctx, points);
+        if (inscribed) {
+            renderCircle(ctx, inscribed.cx, inscribed.cy, inscribed.r, '#00e676', 2);
+        }
+        if (circumscribed) {
+            renderCircle(ctx, circumscribed.cx, circumscribed.cy, circumscribed.r, '#ff5252', 2);
+        }
+    }
+
+    // ===== Event Handlers (Task 2, 3, 7.3, 8.4, 9) =====
+    function onMouseDown(e) {
+        // Reset state (Task 9)
+        isDrawing = true;
+        points = [];
+        inscribed = null;
+        circumscribed = null;
+        score = null;
+        clearResults();
+        clearCanvas(ctx, canvas);
+
+        var rect = canvas.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        points.push({ x: x, y: y });
+    }
+
+    function onMouseMove(e) {
+        if (!isDrawing) return;
+        var rect = canvas.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        points.push({ x: x, y: y });
+
+        // Render live stroke
+        clearCanvas(ctx, canvas);
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (var i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    function onMouseUp(e) {
+        if (!isDrawing) return;
+        isDrawing = false;
+
+        // Validate shape (Task 3.2)
+        if (!isValidShape(points)) {
+            showMessage('Draw a bigger shape — need at least 3 points.');
+            return;
+        }
+
+        // Compute circles (Task 7.3)
+        circumscribed = minEnclosingCircle(points);
+        inscribed = maxInscribedCircle(points);
+        score = calculateScore(inscribed.r, circumscribed.r);
+
+        // Render results (Task 8.4)
+        renderResults(ctx, points, inscribed, circumscribed);
+
+        // Display numeric results (Task 7.2)
+        displayResults(inscribed.r, circumscribed.r, score);
+    }
+
+    // ===== Initialization =====
+    initCanvas();
+
+    // Register event listeners (Task 2.5)
+    canvas.addEventListener('mousedown', onMouseDown);
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseup', onMouseUp);
+    canvas.addEventListener('mouseleave', function(e) {
+        if (isDrawing) {
+            onMouseUp(e);
+        }
+    });
+
+    </script>
+</body>
+</html>
