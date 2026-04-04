@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline Viewer</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Timeline Bar (fixed top) -->
+  <div id="timeline-bar">
+    <!-- Play/Pause button -->
+    <button id="play-btn" aria-label="Play slideshow">&#9654;</button>
+
+    <!-- Left bookend: clickable marker with label below -->
+    <div id="bookend-left" class="bookend" role="button" tabindex="0" aria-label="Jump to first entry">
+      <span class="bookend-marker">|</span>
+      <span class="bookend-label" id="bookend-label-left"></span>
+    </div>
+
+    <!-- Notch track (proportionally positioned notches) -->
+    <div id="timeline-track">
+      <div id="timeline-notches">
+        <!-- One notch per entry, dynamically generated with left % positioning -->
+      </div>
+    </div>
+
+    <!-- Right bookend: clickable marker with label below -->
+    <div id="bookend-right" class="bookend" role="button" tabindex="0" aria-label="Jump to last entry">
+      <span class="bookend-marker">|</span>
+      <span class="bookend-label" id="bookend-label-right"></span>
+    </div>
+
+    <button id="collapse-btn" aria-label="Collapse timeline">&times;</button>
+  </div>
+
+  <!-- Expand indicator (shown when collapsed) -->
+  <button id="expand-btn" aria-label="Expand timeline">&#9660;</button>
+
+  <!-- Content Area -->
+  <main id="content-area">
+    <!-- Active entry HTML content rendered here -->
+  </main>
+
+  <!-- Error banner (shown on data load issues) -->
+  <div id="error-banner" role="alert" hidden></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/date-parser.js"></script>
+  <script src="js/data-loader.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/animation.js"></script>
+  <script src="js/timeline.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

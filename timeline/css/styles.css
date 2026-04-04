@@ -1,0 +1,314 @@
+/* ===== Reset & Base ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: #222;
+  background: #fafafa;
+  overflow-x: hidden; /* Req 9.5 — no horizontal overflow */
+}
+
+/* ===== Timeline Bar (fixed top, full width) ===== */
+/* Req 1.1, 1.2, 9.1, 9.5 */
+#timeline-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: #1a1a2e;
+  color: #eee;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  height: 56px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  overflow: visible;
+}
+
+#timeline-bar.collapsed {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ===== Play/Pause Button ===== */
+/* Req 18.1, 18.2, 18.3 */
+#play-btn {
+  background: none;
+  border: none;
+  color: #7ecfff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+#play-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Bookend Markers & Labels ===== */
+/* Req 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7, 16.8 */
+.bookend {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.bookend-marker {
+  font-size: 20px;
+  font-weight: 700;
+  color: #7ecfff;
+  line-height: 1;
+}
+
+.bookend-label {
+  font-size: 10px;
+  color: #aac4d6;
+  white-space: nowrap;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 2px;
+}
+
+/* ===== Timeline Track (proportional positioning container) ===== */
+/* Req 15.1, 15.2, 15.3, 15.4 */
+#timeline-track {
+  position: relative;
+  flex: 1;
+  height: 36px;
+  margin: 0 8px;
+}
+
+/* ===== Timeline Notches Container ===== */
+#timeline-notches {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== Notch ===== */
+/* Req 12.1, 12.3, 12.5 — proportionally positioned */
+.notch {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #a0a0d0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.notch:hover {
+  background: #7b7bbd;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* Req 3.2, 12.4 — active notch visual distinction */
+.notch.active {
+  background: #e94560;
+  transform: translate(-50%, -50%) scale(1.35);
+  box-shadow: 0 0 6px rgba(233, 69, 96, 0.6);
+}
+
+/* ===== Notch Tooltip ===== */
+/* Req 12.2 — shown on hover, below the notch */
+.notch-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  font-size: 12px;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+.notch-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #333;
+}
+
+.notch:hover .notch-tooltip {
+  opacity: 1;
+}
+
+/* ===== Collapse Button ===== */
+/* Req 11.1 — X icon in the timeline bar, right side */
+#collapse-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 20px;
+  cursor: pointer;
+  margin-left: 12px;
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: 4px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+#collapse-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Expand Button ===== */
+/* Req 11.3 — hidden by default, shown when collapsed, fixed top */
+#expand-btn {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  background: #1a1a2e;
+  color: #eee;
+  border: none;
+  padding: 4px 24px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 0 0 6px 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+#expand-btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#expand-btn:hover {
+  background: #2a2a4e;
+}
+
+/* ===== Content Area ===== */
+/* Req 1.3, 9.2, 9.4, 11.5 */
+#content-area {
+  margin-top: 72px; /* timeline bar height + space for labels below */
+  max-width: 100%;
+  padding: 24px 16px;
+  transition: opacity 0.5s ease, margin-top 0.3s ease;
+  opacity: 1;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Req 11.5 — content expands when bar collapsed */
+#content-area.bar-collapsed {
+  margin-top: 0;
+}
+
+/* ===== Fade Transition Classes ===== */
+/* Req 13.1 — fade-out / fade-in for content transitions */
+.fade-out {
+  opacity: 0 !important;
+}
+
+.fade-in {
+  opacity: 1 !important;
+}
+
+/* ===== Error Banner ===== */
+#error-banner {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: opacity 0.5s ease;
+}
+
+#error-banner.fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#error-banner[hidden] {
+  display: none;
+}
+
+/* ===== Responsive — Mobile Breakpoint ===== */
+/* Req 9.1, 9.2, 9.3, 9.4 */
+@media (max-width: 600px) {
+  #timeline-bar {
+    padding: 8px 10px;
+    height: 48px;
+  }
+
+  #content-area {
+    margin-top: 64px;
+    padding: 16px 10px;
+  }
+
+  #content-area.bar-collapsed {
+    margin-top: 0;
+  }
+
+  #timeline-track {
+    height: 30px;
+    margin: 0 4px;
+  }
+
+  .notch {
+    width: 12px;
+    height: 12px;
+  }
+
+  .notch.active {
+    transform: translate(-50%, -50%) scale(1.25);
+  }
+
+  .notch-tooltip {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .bookend-marker {
+    font-size: 16px;
+  }
+
+  .bookend-label {
+    font-size: 10px;
+  }
+}
